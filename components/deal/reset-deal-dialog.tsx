@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { RotateCcw } from "lucide-react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -41,13 +41,12 @@ export function ResetDealDialog({ dealName }: { dealName: string }) {
     <>
       <Button
         type="button"
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start gap-2 text-muted-foreground hover:text-destructive"
+        variant="outline"
+        className="w-full justify-center gap-2 border-primary/30 font-medium text-primary hover:border-primary hover:bg-primary/10 hover:text-primary"
         onClick={() => setOpen(true)}
       >
-        <RotateCcw />
-        Start New Deal
+        <Plus className="size-4" />
+        New Deal
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>

@@ -15,6 +15,7 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarSeparator,
 } from "@/components/ui/sidebar";
 import { getCategoryStyle } from "@/lib/category-styles";
 import { ResetDealDialog } from "@/components/deal/reset-deal-dialog";
@@ -94,6 +95,7 @@ export function DealSidebarNav({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarSeparator />
       <SidebarFooter>
         <ResetDealDialog dealName={dealName} />
       </SidebarFooter>
