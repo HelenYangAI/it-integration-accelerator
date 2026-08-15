@@ -58,7 +58,7 @@ export function DealSidebarNav({
                   isActive={pathname === "/"}
                   render={
                     <Link href="/">
-                      <LayoutDashboard className="text-primary" />
+                      <LayoutDashboard className="text-muted-foreground" />
                       Dashboard
                     </Link>
                   }
@@ -73,14 +73,13 @@ export function DealSidebarNav({
             <SidebarMenu>
               {categories.map((c) => {
                 const style = getCategoryStyle(c.slug);
-                const Icon = style.icon;
                 return (
                   <SidebarMenuItem key={c.slug}>
                     <SidebarMenuButton
                       isActive={pathname === `/category/${c.slug}`}
                       render={
                         <Link href={`/category/${c.slug}`}>
-                          <Icon className={style.text} />
+                          <span className={`size-1.5 shrink-0 rounded-full ${style.dot}`} />
                           {c.name}
                         </Link>
                       }
