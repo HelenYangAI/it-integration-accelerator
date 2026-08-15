@@ -6,6 +6,7 @@ import { LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -16,6 +17,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { getCategoryStyle } from "@/lib/category-styles";
+import { ResetDealDialog } from "@/components/deal/reset-deal-dialog";
 
 export type SidebarCategory = {
   slug: string;
@@ -93,6 +95,9 @@ export function DealSidebarNav({
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <ResetDealDialog dealName={dealName} />
+      </SidebarFooter>
     </Sidebar>
   );
 }
