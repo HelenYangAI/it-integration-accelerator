@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import {
   ITEM_STATUS_LABELS,
   RAG_STATUS_LABELS,
+  RAG_STATUS_COLORS,
   ITEM_PHASE_LABELS,
 } from "@/lib/labels";
 
@@ -18,6 +19,12 @@ type Props = {
   owner: string | null;
   dueDate: string | null;
   phase: string | null;
+};
+
+const RAG_RING_CLASSES: Record<string, string> = {
+  GREEN: "ring-1 ring-emerald-200 dark:ring-emerald-500/30",
+  AMBER: "ring-1 ring-amber-200 dark:ring-amber-500/30",
+  RED: "ring-1 ring-red-200 dark:ring-red-500/30",
 };
 
 export function ItemTrackingControls({
@@ -31,6 +38,7 @@ export function ItemTrackingControls({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [ownerValue, setOwnerValue] = useState(owner ?? "");
+  const [ragValue, setRagValue] = useState(ragStatus);
 
   async function patch(fields: Record<string, unknown>) {
     const res = await fetch(`/api/deal/items/${itemKey}`, {
@@ -65,19 +73,27 @@ export function ItemTrackingControls({
       </div>
       <div>
         <Label htmlFor="rag">RAG</Label>
-        <select
-          id="rag"
-          className="border-input mt-1 h-9 w-full rounded-md border bg-transparent px-3 text-sm"
-          defaultValue={ragStatus}
-          disabled={isPending}
-          onChange={(e) => patch({ ragStatus: e.target.value })}
+        <div
+          className={`mt-1 flex items-center gap-2 rounded-md border border-input px-2 ${RAG_RING_CLASSES[ragValue]}`}
         >
-          {Object.entries(RAG_STATUS_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
+          <span className={`size-2 shrink-0 rounded-full ${RAG_STATUS_COLORS[ragValue]}`} />
+          <select
+            id="rag"
+            className="h-9 w-full bg-transparent text-sm outline-none"
+            defaultValue={ragStatus}
+            disabled={isPending}
+            onChange={(e) => {
+              setRagValue(e.target.value);
+              patch({ ragStatus: e.target.value });
+            }}
+          >
+            {Object.entries(RAG_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
       <div>
         <Label htmlFor="phase">Phase</Label>

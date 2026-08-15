@@ -2,9 +2,10 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getActiveDeal } from "@/lib/deal";
 import { getItemByKey, getAssetInventoryItems } from "@/lib/catalog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { RENDER_KIND_LABELS } from "@/lib/labels";
+import { getCategoryStyle } from "@/lib/category-styles";
 import { ItemTrackingControls } from "@/components/items/item-tracking-controls";
 import { NarrativeEditor } from "@/components/items/narrative-editor";
 import { AssetInventoryTable } from "@/components/items/asset-inventory-table";
@@ -65,27 +66,40 @@ export default async function ItemPage({
     exportFormats.push({ format: "pdf", label: "Export PDF" });
   }
 
+  const categoryStyle = getCategoryStyle(template.category.slug);
+  const CategoryIcon = categoryStyle.icon;
+
   return (
     <div className={template.renderKind === "TABLE" ? "max-w-5xl space-y-6" : "max-w-3xl space-y-6"}>
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <Link
-            href={`/category/${template.category.slug}`}
-            className="text-sm text-muted-foreground hover:underline"
-          >
-            ← {template.category.name}
-          </Link>
-          <div className="mt-1 flex items-center gap-2">
-            <h1 className="text-2xl font-semibold tracking-tight">{template.title}</h1>
-            <Badge variant="outline">{RENDER_KIND_LABELS[template.renderKind]}</Badge>
+        <div className="flex items-start gap-3">
+          <span className={`mt-1 flex size-10 shrink-0 items-center justify-center rounded-lg ${categoryStyle.iconWrap}`}>
+            <CategoryIcon className="size-5" />
+          </span>
+          <div>
+            <Link
+              href={`/category/${template.category.slug}`}
+              className={`text-sm hover:underline ${categoryStyle.text}`}
+            >
+              ← {template.category.name}
+            </Link>
+            <div className="mt-1 flex items-center gap-2">
+              <h1 className="text-2xl font-semibold tracking-tight">{template.title}</h1>
+              <Badge variant="outline">{RENDER_KIND_LABELS[template.renderKind]}</Badge>
+            </div>
+            <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
         </div>
         <ExportMenu itemKey={item.itemKey} formats={exportFormats} />
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="gap-3">
+        <CardHeader>
+          <CardTitle className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
+            Tracking
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
           <ItemTrackingControls
             itemKey={item.itemKey}
             status={item.status}

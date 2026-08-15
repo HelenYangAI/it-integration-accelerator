@@ -27,16 +27,28 @@ export const ITEM_STATUS_LABELS: Record<string, string> = {
   COMPLETE: "Complete",
 };
 
+export const ITEM_STATUS_BADGE_CLASSES: Record<string, string> = {
+  NOT_STARTED: "bg-slate-100 text-slate-600 dark:bg-slate-500/15 dark:text-slate-300",
+  IN_PROGRESS: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+  COMPLETE: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+};
+
 export const RAG_STATUS_LABELS: Record<string, string> = {
-  GREEN: "Green",
-  AMBER: "Amber",
-  RED: "Red",
+  GREEN: "On Track",
+  AMBER: "At Risk",
+  RED: "Blocked",
 };
 
 export const RAG_STATUS_COLORS: Record<string, string> = {
   GREEN: "bg-emerald-500",
   AMBER: "bg-amber-500",
   RED: "bg-red-500",
+};
+
+export const RAG_STATUS_BADGE_CLASSES: Record<string, string> = {
+  GREEN: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+  AMBER: "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+  RED: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
 };
 
 export const ITEM_PHASE_LABELS: Record<string, string> = {

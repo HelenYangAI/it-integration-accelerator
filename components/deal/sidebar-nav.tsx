@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,6 +15,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { getCategoryStyle } from "@/lib/category-styles";
 
 export type SidebarCategory = {
   slug: string;
@@ -34,9 +36,14 @@ export function DealSidebarNav({
   return (
     <Sidebar>
       <SidebarHeader>
-        <div className="px-2 py-1.5">
-          <p className="text-xs text-muted-foreground">IT Integration Accelerator</p>
-          <p className="truncate text-sm font-semibold">{dealName}</p>
+        <div className="flex items-center gap-2 px-2 py-1.5">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-heading text-sm font-semibold">
+            {dealName.charAt(0)}
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs text-muted-foreground">IT Integration Accelerator</p>
+            <p className="truncate text-sm font-semibold">{dealName}</p>
+          </div>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -47,7 +54,12 @@ export function DealSidebarNav({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname === "/"}
-                  render={<Link href="/">Dashboard</Link>}
+                  render={
+                    <Link href="/">
+                      <LayoutDashboard className="text-primary" />
+                      Dashboard
+                    </Link>
+                  }
                 />
               </SidebarMenuItem>
             </SidebarMenu>
@@ -57,17 +69,26 @@ export function DealSidebarNav({
           <SidebarGroupLabel>Categories</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {categories.map((c) => (
-                <SidebarMenuItem key={c.slug}>
-                  <SidebarMenuButton
-                    isActive={pathname === `/category/${c.slug}`}
-                    render={<Link href={`/category/${c.slug}`}>{c.name}</Link>}
-                  />
-                  {c.notStartedCount > 0 && (
-                    <SidebarMenuBadge>{c.notStartedCount}</SidebarMenuBadge>
-                  )}
-                </SidebarMenuItem>
-              ))}
+              {categories.map((c) => {
+                const style = getCategoryStyle(c.slug);
+                const Icon = style.icon;
+                return (
+                  <SidebarMenuItem key={c.slug}>
+                    <SidebarMenuButton
+                      isActive={pathname === `/category/${c.slug}`}
+                      render={
+                        <Link href={`/category/${c.slug}`}>
+                          <Icon className={style.text} />
+                          {c.name}
+                        </Link>
+                      }
+                    />
+                    {c.notStartedCount > 0 && (
+                      <SidebarMenuBadge>{c.notStartedCount}</SidebarMenuBadge>
+                    )}
+                  </SidebarMenuItem>
+                );
+              })}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
