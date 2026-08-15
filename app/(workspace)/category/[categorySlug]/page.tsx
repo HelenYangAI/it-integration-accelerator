@@ -4,11 +4,14 @@ import { getActiveDeal } from "@/lib/deal";
 import { getCategoryBySlug } from "@/lib/catalog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import {
   ITEM_STATUS_LABELS,
   RAG_STATUS_COLORS,
   RENDER_KIND_LABELS,
 } from "@/lib/labels";
+
+const PPTX_EXPORT_CATEGORIES = new Set(["assessment-planning", "governance-tracking", "day1-readiness"]);
 
 export default async function CategoryPage({
   params,
@@ -24,9 +27,19 @@ export default async function CategoryPage({
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight">{category.name}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{category.templates.length} items</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">{category.name}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{category.templates.length} items</p>
+        </div>
+        {PPTX_EXPORT_CATEGORIES.has(categorySlug) && (
+          <a
+            href={`/api/deal/export/category/${categorySlug}?format=pptx`}
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            Export PowerPoint (.pptx)
+          </a>
+        )}
       </div>
 
       <div className="space-y-2">

@@ -8,10 +8,8 @@ import { buildEntityXlsx } from "@/lib/export/xlsx/generic-entity";
 import { buildChecklistDocx } from "@/lib/export/docx/checklist";
 import { getEntityConfig } from "@/lib/entities/config";
 import { getEntityRows, serializeRows, getRefOptionsForConfig } from "@/lib/entities/query";
-
-function slugFilename(title: string): string {
-  return title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-}
+import { renderPdf } from "@/lib/export/pdf/render";
+import { slugFilename } from "@/lib/export/filename";
 
 export async function GET(
   request: Request,
@@ -96,6 +94,17 @@ export async function GET(
       headers: {
         "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         "Content-Disposition": `attachment; filename="${slugFilename(item.template.title)}.docx"`,
+      },
+    });
+  }
+
+  if (format === "pdf") {
+    const printUrl = new URL(`/print/${key}`, request.url).toString();
+    const buffer = await renderPdf(printUrl, item.template.renderKind === "TABLE");
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="${slugFilename(item.template.title)}.pdf"`,
       },
     });
   }

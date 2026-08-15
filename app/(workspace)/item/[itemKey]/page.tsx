@@ -56,6 +56,14 @@ export default async function ItemPage({
   if (template.renderKind === "CHECKLIST" && item.tasks.length > 0) {
     exportFormats.push({ format: "docx", label: "Export Word (.docx)" });
   }
+  const hasAnyContent =
+    (template.renderKind === "NARRATIVE" && Boolean(item.content)) ||
+    Boolean(assetInventoryItems && assetInventoryItems.length > 0) ||
+    genericRows.length > 0 ||
+    (template.renderKind === "CHECKLIST" && item.tasks.length > 0);
+  if (hasAnyContent) {
+    exportFormats.push({ format: "pdf", label: "Export PDF" });
+  }
 
   return (
     <div className={template.renderKind === "TABLE" ? "max-w-5xl space-y-6" : "max-w-3xl space-y-6"}>

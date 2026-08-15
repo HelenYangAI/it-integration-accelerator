@@ -9,7 +9,7 @@ const rowSchema = z.object({
   dueDate: z.string().nullable().describe("ISO date, approximate is fine"),
 });
 
-const schema = z.object({ items: z.array(rowSchema).min(8).max(20) });
+const schema = z.object({ items: z.array(rowSchema).min(8).max(30) });
 
 export const itIntegrationRoadmap: StructuredPromptConfig<typeof schema> = {
   kind: "TABLE",

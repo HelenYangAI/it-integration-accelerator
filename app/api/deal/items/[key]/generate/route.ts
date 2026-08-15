@@ -71,12 +71,21 @@ export async function POST(
 
   // TABLE / CHECKLIST: generate structured rows and append them (never
   // overwrites or deletes existing manually-entered or imported rows).
-  const { output } = await generateText({
-    model: aiModel,
-    system: config.system,
-    prompt,
-    output: Output.object({ schema: config.schema }),
-  });
+  let output;
+  try {
+    ({ output } = await generateText({
+      model: aiModel,
+      system: config.system,
+      prompt,
+      output: Output.object({ schema: config.schema }),
+    }));
+  } catch (error) {
+    console.error(`Structured generation failed for item "${key}":`, error);
+    return NextResponse.json(
+      { error: "AI generation failed — the model's response didn't match the expected shape. Try again." },
+      { status: 502 }
+    );
+  }
 
   const { createdCount } = await config.persist({
     dealId: deal.id,
