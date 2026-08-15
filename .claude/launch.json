@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "/Users/helenyang/Desktop/AI M&A Integration Accelerator/.claude/run-dev.sh",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}

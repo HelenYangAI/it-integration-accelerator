@@ -1,0 +1,513 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------- Enums ----------
+
+enum DealType {
+  BOLT_ON
+  TUCK_IN
+  MERGER_OF_EQUALS
+  CARVE_OUT
+  OTHER
+}
+
+enum CompanyRole {
+  ACQUIRER
+  TARGET
+}
+
+enum ItOrgScope {
+  ACQUIRER
+  TARGET
+  FUTURE_STATE
+}
+
+enum ItFunction {
+  INFRASTRUCTURE
+  APPLICATIONS
+  SECURITY
+  DATA
+  END_USER_COMPUTE
+  SERVICE_DESK
+  PMO
+}
+
+enum RenderKind {
+  NARRATIVE
+  TABLE
+  CHECKLIST
+}
+
+enum ItemStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETE
+}
+
+enum RagStatus {
+  GREEN
+  AMBER
+  RED
+}
+
+enum ItemPhase {
+  DAY1
+  DAY100
+  LONG_TERM
+  ONGOING
+}
+
+enum AssetType {
+  APP
+  SERVER
+  DATACENTER
+  CLOUD_SERVICE
+  NETWORK
+}
+
+enum Criticality {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum OverlapLevel {
+  NONE
+  PARTIAL
+  FULL
+}
+
+enum DataSensitivity {
+  LOW
+  MEDIUM
+  HIGH
+  RESTRICTED
+}
+
+enum RationalizationAction {
+  KEEP
+  RETIRE
+  CONSOLIDATE
+  MIGRATE
+}
+
+enum Confidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum MilestonePhase {
+  DAY1
+  DAY100
+  LONG_TERM
+}
+
+enum CostType {
+  CAPEX
+  OPEX
+}
+
+enum CostTiming {
+  ONE_TIME
+  RUN_RATE
+}
+
+enum SynergyCategory {
+  LICENSE_CONSOLIDATION
+  INFRA_CONSOLIDATION
+  CONTRACT_RENEGOTIATION
+  HEADCOUNT_OVERLAP
+  OTHER
+}
+
+enum ValidationStatus {
+  NOT_VALIDATED
+  IN_PROGRESS
+  VALIDATED
+  AT_RISK
+}
+
+enum TsaStatus {
+  PLANNED
+  ACTIVE
+  EXITED
+}
+
+enum ConsentStatus {
+  NOT_REQUIRED
+  PENDING
+  REQUESTED
+  OBTAINED
+  DENIED
+}
+
+enum RaidType {
+  RISK
+  ASSUMPTION
+  ISSUE
+  DEPENDENCY
+}
+
+enum RaidStatus {
+  OPEN
+  MITIGATED
+  CLOSED
+  ESCALATED
+}
+
+enum RunbookStepStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+enum TaskStatus {
+  OPEN
+  IN_PROGRESS
+  DONE
+  BLOCKED
+}
+
+// ---------- Deal root + intake ----------
+
+model Deal {
+  id                      String   @id @default(cuid())
+  name                    String
+  dealType                DealType
+  industry                String
+  dealThesis              String
+  shortTermGoals          String
+  longTermGoals           String
+  currentStateDescription String
+  status                  String   @default("ACTIVE")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  companies            Company[]
+  itOrgNodes           ItOrgNode[]
+  items                IntegrationItem[]
+  assetInventoryItems  AssetInventoryItem[]
+  rationalizationItems RationalizationItem[]
+  milestones           Milestone[]
+  budgetLineItems      BudgetLineItem[]
+  synergyItems         SynergyItem[]
+  tsaRequirements      TsaRequirement[]
+  contractLicenseItems ContractLicenseItem[]
+  raciEntries          RaciEntry[]
+  raidLogEntries       RaidLogEntry[]
+  runbookSteps         RunbookStep[]
+}
+
+model Company {
+  id            String      @id @default(cuid())
+  dealId        String
+  deal          Deal        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  role          CompanyRole
+  name          String
+  size          String?
+  revenue       String?
+  employeeCount Int?
+  industry      String?
+  description   String?
+  headquarters  String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([dealId])
+}
+
+model ItOrgNode {
+  id        String      @id @default(cuid())
+  dealId    String
+  deal      Deal        @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  scope     ItOrgScope
+  parentId  String?
+  parent    ItOrgNode?  @relation("ItOrgHierarchy", fields: [parentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  children  ItOrgNode[] @relation("ItOrgHierarchy")
+  title     String
+  name      String?
+  function  ItFunction?
+  level     Int         @default(0)
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@index([dealId])
+}
+
+// ---------- Catalog (global, seeded) ----------
+
+model IntegrationCategory {
+  id    String @id @default(cuid())
+  slug  String @unique
+  name  String
+  order Int
+
+  templates ItemTemplate[]
+}
+
+model ItemTemplate {
+  id           String              @id @default(cuid())
+  key          String              @unique
+  categoryId   String
+  category     IntegrationCategory @relation(fields: [categoryId], references: [id])
+  title        String
+  description  String
+  renderKind   RenderKind
+  linkedEntity String?
+  order        Int
+
+  items IntegrationItem[]
+}
+
+// ---------- Per-deal item instances + tracking ----------
+
+model IntegrationItem {
+  id            String       @id @default(cuid())
+  dealId        String
+  deal          Deal         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  itemKey       String
+  template      ItemTemplate @relation(fields: [itemKey], references: [key])
+  status        ItemStatus   @default(NOT_STARTED)
+  ragStatus     RagStatus    @default(GREEN)
+  owner         String?
+  dueDate       DateTime?
+  phase         ItemPhase?
+  content       Json?
+  generatedAt   DateTime?
+  lastEditedAt  DateTime?
+  promptVersion String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  versions ItemVersion[]
+  tasks    ChecklistTask[]
+
+  @@unique([dealId, itemKey])
+  @@index([dealId])
+}
+
+model ItemVersion {
+  id        String          @id @default(cuid())
+  itemId    String
+  item      IntegrationItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  content   Json
+  createdAt DateTime        @default(now())
+
+  @@index([itemId])
+}
+
+model ChecklistTask {
+  id        String          @id @default(cuid())
+  itemId    String
+  item      IntegrationItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  task      String
+  status    TaskStatus      @default(OPEN)
+  owner     String?
+  dueDate   DateTime?
+  notes     String?
+  order     Int             @default(0)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([itemId])
+}
+
+// ---------- Shared structured entities ----------
+
+model AssetInventoryItem {
+  id                      String            @id @default(cuid())
+  dealId                  String
+  deal                    Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  assetType               AssetType
+  name                    String
+  owner                   String?
+  businessUnit            String?
+  users                   Int?
+  annualCost              Float?
+  criticality             Criticality?
+  overlapWithOtherCompany OverlapLevel?
+  equivalentAsset         String?
+  dataSensitivity         DataSensitivity?
+  contractEndDate         DateTime?
+  companySource           CompanyRole
+  notes                   String?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+
+  rationalization RationalizationItem?
+
+  @@index([dealId])
+}
+
+model RationalizationItem {
+  id                     String                @id @default(cuid())
+  dealId                 String
+  deal                   Deal                  @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  assetInventoryItemId   String                @unique
+  assetInventoryItem     AssetInventoryItem    @relation(fields: [assetInventoryItemId], references: [id], onDelete: Cascade)
+  recommendation         RationalizationAction
+  rationale              String?
+  estimatedSynergyImpact Float?
+  estimatedOneTimeCost   Float?
+  targetDate             DateTime?
+  confidence             Confidence?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  @@index([dealId])
+}
+
+model Milestone {
+  id          String         @id @default(cuid())
+  dealId      String
+  deal        Deal           @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  title       String
+  tag         String?
+  phase       MilestonePhase
+  startDate   DateTime?
+  dueDate     DateTime?
+  status      ItemStatus     @default(NOT_STARTED)
+  ragStatus   RagStatus      @default(GREEN)
+  owner       String?
+  dependsOnId String?
+  dependsOn   Milestone?     @relation("MilestoneDependency", fields: [dependsOnId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  dependents  Milestone[]    @relation("MilestoneDependency")
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([dealId])
+}
+
+model BudgetLineItem {
+  id                    String       @id @default(cuid())
+  dealId                String
+  deal                  Deal         @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  category              String
+  description           String
+  estimatedCost         Float
+  actualCost            Float?
+  costType              CostType
+  timing                CostTiming
+  phase                 ItemPhase?
+  relatedSynergyItemId  String?
+  relatedSynergyItem    SynergyItem? @relation(fields: [relatedSynergyItemId], references: [id], onDelete: SetNull)
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+
+  @@index([dealId])
+}
+
+model SynergyItem {
+  id                   String            @id @default(cuid())
+  dealId               String
+  deal                 Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  category             SynergyCategory
+  description          String
+  annualValue          Float?
+  oneTimeCostToAchieve Float?
+  realizationYear      Int?
+  validationStatus     ValidationStatus  @default(NOT_VALIDATED)
+  confidenceLevel      Confidence?
+  rationale            String?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+
+  budgetLineItems BudgetLineItem[]
+
+  @@index([dealId])
+}
+
+model TsaRequirement {
+  id           String    @id @default(cuid())
+  dealId       String
+  deal         Deal      @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  service      String
+  provider     String?
+  startDate    DateTime?
+  endDate      DateTime?
+  monthlyCost  Float?
+  exitCriteria String?
+  status       TsaStatus @default(PLANNED)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([dealId])
+}
+
+model ContractLicenseItem {
+  id                    String                 @id @default(cuid())
+  dealId                String
+  deal                  Deal                   @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  vendor                String
+  contractName          String
+  changeOfControlClause Boolean                @default(false)
+  consentRequired       Boolean                @default(false)
+  consentStatus         ConsentStatus          @default(NOT_REQUIRED)
+  renewalDate           DateTime?
+  annualCost            Float?
+  overlapFlag           Boolean                @default(false)
+  rationalizationAction RationalizationAction?
+  createdAt             DateTime               @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  @@index([dealId])
+}
+
+model RaciEntry {
+  id               String   @id @default(cuid())
+  dealId           String
+  deal             Deal     @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  activity         String
+  responsible      String?
+  accountable      String?
+  consulted        String?
+  informed         String?
+  stakeholderGroup String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([dealId])
+}
+
+model RaidLogEntry {
+  id          String     @id @default(cuid())
+  dealId      String
+  deal        Deal       @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  type        RaidType
+  description String
+  owner       String?
+  impact      String?
+  status      RaidStatus @default(OPEN)
+  mitigation  String?
+  dateRaised  DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([dealId])
+}
+
+model RunbookStep {
+  id           String            @id @default(cuid())
+  dealId       String
+  deal         Deal              @relation(fields: [dealId], references: [id], onDelete: Cascade)
+  runbookName  String
+  stepOrder    Int
+  description  String
+  owner        String?
+  rollbackPlan String?
+  status       RunbookStepStatus @default(NOT_STARTED)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([dealId])
+}
